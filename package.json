@@ -1,0 +1,49 @@
+{
+  "name": "gulp-ab-filter",
+  "version": "0.0.1",
+  "description": "gulp smart filter",
+  "author": "Dmitry Talipov <talipoff@gmail.com> (https://github.com/talipoff)",
+  "license": "MIT",
+  "repository": "talipoff/gulp-ab-filter",
+  "keywords": [
+    "gulp",
+    "gulpplugin",
+    "conditional",
+    "ternary",
+    "filter",
+    "fork",
+    "if",
+    "else",
+    "ignory",
+    "exclude",
+    "match"
+  ],
+  "engines": {
+    "node": ">=6"
+  },
+  "scripts": {
+    "example": "node test/example.js",
+    "test-src": "xo --fix",
+    "test-logic": "mocha test/test.js"
+  },
+  "main": "gulp-ab-filter.js",
+  "files": [
+    "img"
+  ],
+  "dependencies": {
+    "minimatch": "^3.0.3"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "gulp": "^3.9.1",
+    "map-stream": "0.0.7",
+    "mocha": "^3.3.0",
+    "vinyl": "^2.0.2",
+    "xo": "^0.18.1"
+  },
+  "xo": {
+    "ignores": [
+      "test/js/**"
+    ]
+  }
+}

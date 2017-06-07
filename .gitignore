@@ -1,0 +1,6 @@
+/nbproject/
+/node_modules/
+/other/
+/tmp/
+/install.cmd
+/*.log
