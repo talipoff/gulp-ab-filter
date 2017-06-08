@@ -1,6 +1,6 @@
 {
   "name": "gulp-ab-filter",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "gulp smart filter",
   "author": "Dmitry Talipov <talipoff@gmail.com> (https://github.com/talipoff)",
   "license": "MIT",
@@ -27,9 +27,6 @@
     "test-logic": "mocha test/test.js"
   },
   "main": "gulp-ab-filter.js",
-  "files": [
-    "img"
-  ],
   "dependencies": {
     "minimatch": "^3.0.3"
   },

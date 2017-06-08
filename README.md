@@ -317,7 +317,7 @@ let result = match(object, ['**/ba*.js', '!**/b*.js', '**/*.js']);
 
 * Other standard types are converted to a logical expression.
 For example: 1 - true, 0 - false
-#### options (Опции)
+#### options
 * [Minimatch options] for filter settings.
 
 ## Contribute
