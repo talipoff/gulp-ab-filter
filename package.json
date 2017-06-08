@@ -1,6 +1,6 @@
 {
   "name": "gulp-ab-filter",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "gulp smart filter",
   "author": "Dmitry Talipov <talipoff@gmail.com> (https://github.com/talipoff)",
   "license": "MIT",
