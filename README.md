@@ -1,4 +1,9 @@
-# gulp-ab-filter ![status](https://travis-ci.org/talipoff/gulp-ab-filter.svg?branch=master)
+# gulp-ab-filter
+
+[![npm version][npm-image]][npm-url]
+[![Build status][travis-image]][travis-url]
+[![Downloads][downloads-image]][downloads-url]
+
 Use it for filtering and separating stream [vinyl] objects.
 There is only one external dependency [minimatch].
 Easy to connect plugins in the chain for each branch.
@@ -341,3 +346,10 @@ npm run -s test-logic
 [minimatch]:github.com/isaacs/minimatch
 [Minimatch опции]:github.com/isaacs/minimatch#options
 [RegExp]:developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/RegExp
+
+[npm-image]: https://img.shields.io/npm/v/gulp-ab-filter.svg
+[npm-url]: https://npmjs.org/package/gulp-ab-filter
+[travis-image]: https://img.shields.io/travis/talipoff/gulp-ab-filter.svg
+[travis-url]: https://travis-ci.org/talipoff/gulp-ab-filter
+[downloads-image]: http://img.shields.io/npm/dm/gulp-ab-filter.svg
+[downloads-url]: https://npmjs.org/package/gulp-ab-filter
