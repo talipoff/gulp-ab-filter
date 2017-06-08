@@ -1,4 +1,4 @@
-# gulp-ab-filter
+# gulp-ab-filter ![status](https://travis-ci.org/talipoff/gulp-ab-filter.svg?branch=master)
 Use it for filtering and separating stream [vinyl] objects.
 There is only one external dependency [minimatch].
 Easy to connect plugins in the chain for each branch.
