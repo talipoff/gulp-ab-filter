@@ -7,3 +7,4 @@
 /test/
 /*.tgz
 /README-ru.md
+/.travis.yml
