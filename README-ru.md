@@ -20,17 +20,17 @@ const gulp = require('gulp');
 const ab = require('gulp-ab-filter');
 ```
 
-<pre>
+<section>
 ab([condition](#condition) [, branches ] [, options])
      |             |             |
      |             +-> [yes](#pipe)       +-{object}--+-> yes = Yes -|
-   (types)         +-> [yes](#pipe), [no](#pipe)               +-> no =  No  -+-> замена стандартных [имен](#name) для ветвей
+   (types)         +-> [yes](#pipe), [no](#pipe)               +-> no =  No  -+-> замена стандартных [имен](#nameB) для ветвей
      |             +-> namedBranch []        +-> out = Out -|
      |                   / | \               +-> debug - включение режима отладки для контроля прохождения объектов
-     |   {n: [Name](#name), p: [pipe](#pipe), stop: Boolean}   +-> end([vinyl], [cb](#cb) [, [obj](#obj)]) - главный обработчик конца всех ветвей
+     |   {n: [Name](#nameB), p: [pipe](#pipe), stop: Boolean}   +-> end([vinyl], [cb](#cb) [, [obj](#obj)]) - главный обработчик конца всех ветвей
      |                                       +-> flush([cb](#cb) [, [obj](#obj)]) - главный обработчик сброса всех ветвей
-     +-> [RegExp] -------------------+       +-> end[Name](#name) - обработчик конца ветви с указанным [именем](#name), заменяет главный обработчик
-     +-> [blob] ---------------------+       +-> flush[Name](#name) - обработчик сброса ветви с указанным [именем](#name), заменяет главный обработчик
+     +-> [RegExp] -------------------+       +-> end[Name](#nameB) - обработчик конца ветви с указанным [именем](#nameB), заменяет главный обработчик
+     +-> [blob] ---------------------+       +-> flush[Name](#nameB) - обработчик сброса ветви с указанным [именем](#nameB), заменяет главный обработчик
      +-> [blob] [] ------------------+       +-> [minimathOptions] - опции которые применяются для [blob] [condition](#condition)
      +-> function([vinyl])           |
      |      |                        |
@@ -38,7 +38,7 @@ ab([condition](#condition) [, branches ] [, options])
      |      +-> other - convert -> --+-> Boolean *result*
      |                               |
      +-> other - convert ------------+
-</pre>
+</section>
 
 #### <a name="condition"></a>Condition (Условие)
 В [RegExp] и [blob] передается результат функции [relPath](#relPath).
@@ -54,7 +54,7 @@ ab([condition](#condition) [, branches ] [, options])
 * Прочие типы стандартно преобразуются к логическому выражению.
 Например: 1 - true, 0 - false.
 
-#### <a name="name"></a>Name
+#### <a name="nameB"></a>Name
 Имя ветви
 
 #### <a name="pipe"></a>Pipe
@@ -69,7 +69,7 @@ ab([condition](#condition) [, branches ] [, options])
 
 #### <a name="obj">obj
 Объект контекста.
-Он содержит два свойства: n - [имя ветви](#name) и s - ссылка на поток ветви.
+Он содержит два свойства: n - [имя ветви](#nameB) и s - ссылка на поток ветви.
 Поток ветви поддерживает команду push.
 
 #### Логика работы фильтра:
@@ -85,9 +85,9 @@ ab([condition](#condition) [, branches ] [, options])
 Объекты после прохождения всех ветвей также попадают в **out**.
 Если свойство namedBranch.stop === true то объекты не передаются в **out**.
 4) Можно установить обработчик end. В него попадут объекты при выходе из из всех ветвей. См. [пример](#_filterEnd).
-5) Можно установить обработчик end[Name](#name). В него попадут объекты при выходе из ветви Name.
+5) Можно установить обработчик end[Name](#nameB). В него попадут объекты при выходе из ветви Name.
 6) Можно установить обработчик flush. Он будет вызван при очистке всех ветвей. См. [пример](#_filterEndFlush).
-7) Можно установить обработчик end[Name](#name). Он будет вызван при очистке ветви Name.
+7) Можно установить обработчик end[Name](#nameB). Он будет вызван при очистке ветви Name.
 
 #### Примеры использования:
 
