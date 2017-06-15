@@ -1,4 +1,4 @@
-/* eslint max-depth: ["error", 5] */
+/* eslint-env node */
 /* eslint no-unused-expressions: ["error", { "allowShortCircuit": true }] */
 'use strict';
 const path = require('path');
@@ -65,18 +65,18 @@ module.exports = (condition, p1, p2, userConfig) => {
 	const pipes = {};
 
 	function logFile(name, file) {
-		config.debug &&	console.log(`> ${name} > "${typeof file === 'string' ? file : relPath(file)}"`);
+		config.debug && console.log(`> ${name} > "${typeof file === 'string' ? file : relPath(file)}"`);
 	}
 
 	function addTransform(stream, name) {
 		let nameH = 'end' + name;
-		if(!config[nameH]){
+		if (!config[nameH]) {
 			nameH = 'end';
 		}
 		const end = config[nameH];
 		if (end) {
 			stream._transform = (file, enc, cb) => {
-				logFile(name+'_'+nameH, file);
+				logFile(name + '_' + nameH, file);
 				const uo = pipesEnd.get(name);
 				uo.flush || end(file, cb, uo);
 			};
@@ -86,13 +86,13 @@ module.exports = (condition, p1, p2, userConfig) => {
 
 	function addFlush(stream, name) {
 		let nameH = 'flush' + name;
-		if(!config[nameH]){
+		if (!config[nameH]) {
 			nameH = 'flush';
 		}
 		const flush = config[nameH];
 		if (flush) {
 			stream._flush = cb => {
-				logFile(name+'_'+nameH, '');
+				logFile(name + '_' + nameH, '');
 				const uo = pipesEnd.get(name);
 				uo.flush = true;
 				flush(cb, uo);
@@ -127,10 +127,10 @@ module.exports = (condition, p1, p2, userConfig) => {
 		} else {
 			const condS = (typeof cond === 'boolean') ? (cond ? config.yes : config.no) : cond;
 			write(condS);
-			if (!fw && typeof cond === 'string' && cond !== config.no && cond !== (config.no + config.stop)) {
+			if (!fw && typeof cond === 'string' && cond !== config.no) {
 				write(config.no);
 			}
-			if(!fw){
+			if (!fw) {
 				write(config.out);
 			}
 		}
@@ -162,7 +162,7 @@ module.exports = (condition, p1, p2, userConfig) => {
 				pipes[name] = plugin;
 				s = plugin;
 				while (s._readableState && s._readableState.pipesCount) {
-					if (s._readableState.pipesCount > 1) {
+					if (s._readableState.pipesCount > 1) { // eslint-disable-line max-depth
 						throw new Error(`stream "${name}" has many pipes!`);
 					}
 					s = s._readableState.pipes;
@@ -189,6 +189,7 @@ module.exports = (condition, p1, p2, userConfig) => {
 
 	selector.on('end', () => {
 		let c = 0;
+		// eslint-disable-next-line guard-for-in
 		for (const name in pipes) {
 			(name !== config.out) && pipes[name].end();
 			c++;
@@ -214,4 +215,3 @@ module.exports = (condition, p1, p2, userConfig) => {
 
 module.exports.match = match;
 module.exports.relPath = relPath;
-
