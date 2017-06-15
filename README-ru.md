@@ -20,27 +20,27 @@ const gulp = require('gulp');
 const ab = require('gulp-ab-filter');
 ```
 
-<section>
-ab([condition](#condition) [, branches ] [, options])
-     |             |             |
-     |             +-> [yes](#pipe)       +-{object}--+-> yes = Yes -|
-   (types)         +-> [yes](#pipe), [no](#pipe)               +-> no =  No  -+-> замена стандартных [имен](#nameB) для ветвей
-     |             +-> namedBranch []        +-> out = Out -|
-     |                   / | \               +-> debug - включение режима отладки для контроля прохождения объектов
-     |   {n: [Name](#nameB), p: [pipe](#pipe), stop: Boolean}   +-> end([vinyl], [cb](#cb) [, [obj](#obj)]) - главный обработчик конца всех ветвей
-     |                                       +-> flush([cb](#cb) [, [obj](#obj)]) - главный обработчик сброса всех ветвей
-     +-> [RegExp] -------------------+       +-> end[Name](#nameB) - обработчик конца ветви с указанным [именем](#nameB), заменяет главный обработчик
-     +-> [blob] ---------------------+       +-> flush[Name](#nameB) - обработчик сброса ветви с указанным [именем](#nameB), заменяет главный обработчик
-     +-> [blob] [] ------------------+       +-> [minimathOptions] - опции которые применяются для [blob] [condition](#condition)
-     +-> function([vinyl])           |
+```
+ab(condition [, branches ] [, options])
+     |             |            |
+     |             +-> yes      +-{object}--+-> yes = Yes -|
+   (types)         +-> yes, no              +-> no =  No  -+-> замена стандартных имен для ветвей
+     |             +-> namedBranch []       +-> out = Out -|
+     |                   / | \              +-> debug - включение режима отладки для контроля прохождения объектов
+     |   {n: Name, p: Pipe, stop: Boolean}  +-> end(vinyl, cb [, obj]) - главный обработчик конца всех ветвей
+     |                                      +-> flush(cb [, obj]) - главный обработчик сброса всех ветвей
+     +-> RegExp ---------------------+      +-> endName - обработчик конца ветви с указанным именем, заменяет главный обработчик
+     +-> blob -----------------------+      +-> flushName - обработчик сброса ветви с указанным именем, заменяет главный обработчик
+     +-> blob [] --------------------+      +-> minimatch - опции которые применяются для blob condition
+     +-> function(vinyl)             |
      |      |                        |
-     |      +-> String *result*      |
-     |      +-> other - convert -> --+-> Boolean *result*
+     |      +-> String result        |
+     |      +-> other - convert -> --+-> Boolean result
      |                               |
      +-> other - convert ------------+
-</section>
+```
 
-#### <a name="condition"></a>Condition (Условие)
+#### <a name="condition"></a>condition (Условие)
 В [RegExp] и [blob] передается результат функции [relPath](#relPath).
 Возможные типы:
 * Function - пользовательская функции с одним аргументом типа [vinyl].

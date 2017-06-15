@@ -20,23 +20,25 @@ const gulp = require('gulp');
 const ab = require('gulp-ab-filter');
 ```
 
-ab([condition](#condition) [, branches ] [, options])
-     |             |             |
-     |             +-> [yes](#pipe)       +-{object}--+-> yes = Yes -|
-   (types)         +-> [yes](#pipe), [no](#pipe)               +-> no =  No  -+-> set custom [name](#name) for branches
-     |             +-> namedBranch []        +-> out = Out -|
-     |                   / | \               +-> debug - enable debug mode to control the route of objects
-     |   {n: [Name](#name), p: [pipe](#pipe), stop: Boolean}   +-> end([vinyl], [cb](#cb) [, [obj](#obj)]) - main end handler for all branches
-     |                                       +-> flush([cb](#cb) [, [obj](#obj)]) - main flush handler for all branches
-     +-> [RegExp] -------------------+       +-> end[Name](#name) - end handler for branch with the specified [именем](#name), replace main handler
-     +-> [blob] ---------------------+       +-> flush[Name](#name) - flush handler for branch with the specified [именем](#name), replace main handler
-     +-> [blob] [] ------------------+       +-> [minimathOptions] - minimatch options which apply for [blob] [condition](#condition)
-     +-> function([vinyl])           |
+```
+ab(condition [, branches ] [, options])
+     |             |            |
+     |             +-> yes      +-{object}--+-> yes = Yes -|
+   (types)         +-> yes, no              +-> no =  No  -+-> set custom name for branches
+     |             +-> namedBranch []       +-> out = Out -|
+     |                   / | \              +-> debug - enable debug mode to control the route of objects
+     |   {n: Name, p: Pipe, stop: Boolean}  +-> end(vinyl, cb [, obj]) - main end handler for all branches
+     |                                      +-> flush(cb [, obj]) - main flush handler for all branches
+     +-> RegExp ---------------------+      +-> endName - end handler for branch with the specified name, replace main handler
+     +-> blob -----------------------+      +-> flushName - flush handler for branch with the specified name, replace main handler
+     +-> blob [] --------------------+      +-> minimatch - options which apply for blob condition
+     +-> function(vinyl)             |
      |      |                        |
-     |      +-> String *result*      |
-     |      +-> other - convert -> --+-> Boolean *result*
+     |      +-> String result        |
+     |      +-> other - convert -> --+-> Boolean result
      |                               |
      +-> other - convert ------------+
+```
 
 #### <a name="condition"></a>Condition
 In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
