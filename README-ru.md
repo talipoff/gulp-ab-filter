@@ -20,6 +20,7 @@ const gulp = require('gulp');
 const ab = require('gulp-ab-filter');
 ```
 
+<pre>
 ab([condition](#condition) [, branches ] [, options])
      |             |             |
      |             +-> [yes](#pipe)       +-{object}--+-> yes = Yes -|
@@ -37,8 +38,9 @@ ab([condition](#condition) [, branches ] [, options])
      |      +-> other - convert -> --+-> Boolean *result*
      |                               |
      +-> other - convert ------------+
+</pre>
 
-#### <a name="condition"></a>condition (Условие)
+#### <a name="condition"></a>Condition (Условие)
 В [RegExp] и [blob] передается результат функции [relPath](#relPath).
 Возможные типы:
 * Function - пользовательская функции с одним аргументом типа [vinyl].
@@ -52,9 +54,10 @@ ab([condition](#condition) [, branches ] [, options])
 * Прочие типы стандартно преобразуются к логическому выражению.
 Например: 1 - true, 0 - false.
 
-#### <a name="name"></a>Имя ветви
+#### <a name="name"></a>Name
+Имя ветви
 
-#### <a name="pipe"></a>Труба
+#### <a name="pipe"></a>Pipe
 Параметр yes, no, namedBranch.p может быть:
 * плагином gulp
 * функцией ([vinyl], [cb](#cb) [, [obj](#obj)])

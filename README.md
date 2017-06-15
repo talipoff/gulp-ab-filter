@@ -38,7 +38,7 @@ ab([condition](#condition) [, branches ] [, options])
      |                               |
      +-> other - convert ------------+
 
-#### <a name="condition"></a>condition
+#### <a name="condition"></a>Condition
 In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
 Possible types:
 * Function - user-defined functions with one argument of type [vinyl].
@@ -52,7 +52,8 @@ If the array uses only [blob] with `!` and not one does not work, then this is e
 * Other is converted to Boolean expression.
 For example: 1 - true, 0 - false
 
-#### <a name="name"></a>The name of the branch
+#### <a name="name"></a>Name
+The name of the branch
 
 #### <a name="pipe"></a>Pipe
 Parameter yes, no, namedBranch.p can be:
@@ -163,7 +164,7 @@ gulp.src('source/**/*.js')
   .pipe(gulp.dest('production/js'))
 ```
 
-##### <a name="_yesEnd"></a>Separator stream [vinyl] objects with a standard branch **yes** and the handler end.
+#### <a name="_yesEnd"></a>Separator stream [vinyl] objects with a standard branch **yes** and the handler end.
 ```javascript
 gulp.src('source/**/*.js')
   .pipe(ab(condition, yes , {end: (object, cb, obj) => {
