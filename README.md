@@ -54,7 +54,7 @@ If function returns the string then used it as branch name else converted to a b
 Notice:
 In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
 
-#### <a name="branch"></a>Branches
+#### <a name="branch"></a>Branche
 Parameter yes, no, namedBranch.p can be:
 * gulp plugin
 * function([vinyl], [cb](#cb), [obj](#obj))
@@ -186,11 +186,11 @@ npm run -s test-src
 npm run -s test-logic
 ```
 
-[vinyl]:github.com/gulpjs/vinyl
-[Blob]:github.com/isaacs/node-glob
-[minimatch]:github.com/isaacs/minimatch
-[minimathOptions]:github.com/isaacs/minimatch#options
-[RegExp]:developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/RegExp
+[vinyl]:https://github.com/gulpjs/vinyl
+[Blob]:https://github.com/isaacs/node-glob
+[minimatch]:https://github.com/isaacs/minimatch
+[minimathOptions]:https://github.com/isaacs/minimatch#options
+[RegExp]:https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 [npm-image]: https://img.shields.io/npm/v/gulp-ab-filter.svg
 [npm-url]: https://npmjs.org/package/gulp-ab-filter
 [travis-image]: https://img.shields.io/travis/talipoff/gulp-ab-filter.svg
