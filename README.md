@@ -72,14 +72,14 @@ Possible to set custom properties.
 
 #### The logic of the filter:
 1) [Condition](#condition) depending on its type is converted into `result`.
-2) If the parameter [branches](#branches) is missing then push [obj](#obj) into empty [branch](#branches) **yes**.
+2) If the parameter [branches](#branches) is missing then push [obj](#obj) into empty [branch](#branches) *yes*.
 3) If `result` === string then push [obj](#obj) into [branch](#branches) with the name = `result`.
-If this [branch](#branches) not exists then push [obj](#obj) into [branch](#branches) **no**.
-4) If `result` === true then push [obj](#obj) into [branch](#branches) **yes**.
-5) If `result` === false then push [obj](#obj) into [branch](#branches) **no**.
+If this [branch](#branches) not exists then push [obj](#obj) into [branch](#branches) *no*.
+4) If `result` === true then push [obj](#obj) into [branch](#branches) *yes*.
+5) If `result` === false then push [obj](#obj) into [branch](#branches) *no*.
 6) If the property namedBranch.stop === true, then objects are not pushed.
 
-#### Examples of usage: see example.js
+#### Examples of usage: see [example.js]
 
 #### 1. Stream filter [vinyl] objects.
 ```javascript
@@ -109,7 +109,7 @@ gulp.src('./test/**/*.txt')
 	}));
 ```
 
-#### 3. Use as a separator stream [vinyl] objects with a standard [branches](#branches) **yes** and **no**.
+#### 3. Use as a separator stream [vinyl] objects with a standard [branches](#branches) *yes* and *no*.
 ```javascript
 const yes = [ // This set of plugins will be executed sequentially
 	replaceP('r', '_'), // 1 gulp plugin
@@ -126,7 +126,7 @@ gulp.src('./test/**/*.txt')
 	.pipe(abFilter('**/*t.txt', yes, no));
 ```
 
-#### 4. Separator stream [vinyl] objects with a standard [branch](#branches) **yes** and the handler end.
+#### 4. Separator stream [vinyl] objects with a standard [branch](#branches) *yes* and the handler end.
 ```javascript
 const end = (file, cb, obj) => {
 	if (obj.n === 'Yes') {
@@ -163,7 +163,7 @@ gulp.src('./test/**/*.txt')
 ```
 
 #### 6. Two ways for flush stream.
-See example.js
+See [example.js]
 
 ### abFilter.relPath([vinyl])
 Returns the relative path to the [vinyl] including the object name
@@ -186,6 +186,7 @@ npm run -s test-src
 npm run -s test-logic
 ```
 
+[example.js]:test/example.js
 [vinyl]:https://github.com/gulpjs/vinyl
 [Blob]:https://github.com/isaacs/node-glob
 [minimatch]:https://github.com/isaacs/minimatch
