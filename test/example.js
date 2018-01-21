@@ -2,11 +2,11 @@
 /* eslint-disable no-use-before-define */
 // https://js-node.ru/site/article?id=41#stream_events_finish_and_end
 'use strict';
+const path = require('path');
 const Stream = require('stream');
 const gulp = require('gulp');
 const Vinyl = require('vinyl');
 const abFilter = require('../');
-const path = require('path');
 
 const color1way = '\x1b[31m';
 const color2way = '\x1b[32m';
@@ -91,7 +91,7 @@ examples.push(() => {
 	};
 
 	gulp.src('./test/**/*.txt')
-		.pipe(abFilter('**/*t.txt', replaceP('r', '_'), {end: end}))
+		.pipe(abFilter('**/*t.txt', replaceP('r', '_'), {end}))
 		.pipe(abFilter(file => console.log(abFilter.relPath(file) + ':' + String(file.contents)) || 1, {flush: examples.shift()})) // Use abFilter for logging
 	;
 });
@@ -112,8 +112,8 @@ examples.push(() => {
 		.pipe(abFilter(
 			file => {
 				const relPathParts = abFilter.relPath(file).split(path.posix.sep);
-				return relPathParts.length > 2 ? relPathParts[relPathParts.length-2] : '';
-			}, // get last segment of path
+				return relPathParts.length > 2 ? relPathParts[relPathParts.length - 2] : '';
+			}, // Get last segment of path
 			[{n: 'block1', p: pipe1}, {n: 'txt', p: pipe2}]))
 		.pipe(abFilter(file => console.log(abFilter.relPath(file) + ':' + String(file.contents)) || 1, {flush: examples.shift()})) // Use abFilter for logging
 	;
@@ -140,19 +140,19 @@ examples.push(() => {
 			{
 				debug: 1,
 				end: (file, cb, obj) => {
-					//if(obj.n = 'Yes') {
-						if (obj._all === undefined) {
-							obj._all = '';
-						} else {
-							obj._all += '|2|';
-						}
-					//}
+					// If(obj.n = 'Yes') {
+					if (obj._all === undefined) {
+						obj._all = '';
+					} else {
+						obj._all += '|2|';
+					}
+					// }
 					obj._all += String(file.contents);
 					cb(null, file);
 				}, flush: (cb, obj) => {
 					// Second way
-					if(obj.n === 'Yes') {
-						console.log(color2way + 'option flush:' + obj._all );
+					if (obj.n === 'Yes') {
+						console.log(color2way + 'option flush:' + obj._all);
 					}
 					cb();
 				}

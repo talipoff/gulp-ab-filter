@@ -27,7 +27,7 @@ abFilter(condition [, branches ] [, options])
        /             +-> yes, no           end(vinyl, cb, obj), // main end handler for all branches
       /              +-> namedBranch[]     flush(cb, obj),      // main flush handler for all branches
      /                   / | \             minimatch,           // options which apply for blob condition
-    |  {n: Name, p: Pipe, stop: Boolean}  }
+    |              {n: Name, p: Pipe }    }
     |
     |                     result
     +-> RegExp ---------> boolean

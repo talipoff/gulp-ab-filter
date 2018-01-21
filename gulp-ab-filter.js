@@ -178,9 +178,7 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 			pipes[name] = s;
 		}
 
-		if (!p.stop) {
-			s.pipe(proxy, {end: false});
-		}
+		s.pipe(proxy, {end: false});
 	}
 
 	const selectorEnd = () => {
