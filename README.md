@@ -26,7 +26,7 @@ abFilter(condition [, branches ] [, options])
         /            +-> yes          +---{debug,               // enable debug mode to control the route of objects
        /             +-> yes, no           end(vinyl, cb, obj), // main end handler for all branches
       /              +-> namedBranch[]     flush(cb, obj),      // main flush handler for all branches
-     /                   / | \             minimatch,           // options which apply for blob condition
+     /                   / | \             minimatch            // options which apply for blob condition
     |              {n: Name, p: Pipe }    }
     |
     |                     result
