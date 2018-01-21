@@ -6,14 +6,14 @@ Use it for filtering and separating stream [vinyl] objects.
 Easy to connect plugins in the chain for each branch.
 Easy create custom handlers for objects.
 
-## <a name="installation"></a>Installation
+## Installation
 ```sh
 $ npm i -D gulp-ab-filter
 ```
 
 ## API
 
-### <a name="main"></a>The main module
+### The main module
 ```javascript
 // Import
 const gulp = require('gulp');
@@ -54,7 +54,8 @@ If function returns the string then used it as [branch](#branch) name else conve
 Notice:
 In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
 
-#### Branch #### {#branch_}
+<a name="branch"></a>
+#### Branch
 Parameter yes, no, namedBranch.p can be:
 * gulp plugin
 * function([vinyl], [cb](#cb), [obj](#obj))
@@ -70,7 +71,7 @@ It contains two properties: n - [branch](#branch) name and the s - link to the [
 [Branch](#branch) stream supports push.
 Possible to set custom properties.
 
-#### The logic of the filter: #### {#logic}
+#### The logic of the filter:
 1) [Condition](#condition) depending on its type is converted into `result`.
 2) If the parameter [branches](#branch) is missing then push [obj](#obj) into empty [branch](#branch) **yes**.
 3) If `result` === string then push [obj](#obj) into [branch](#branch) with the name = `result`.
@@ -79,15 +80,15 @@ If this [branch](#branch) not exists then push [obj](#obj) into [branch](#branch
 5) If `result` === false then push [obj](#obj) into [branch](#branch) **no**.
 6) If the property namedBranch.stop === true, then objects are not pushed.
 
-#### <a name="examples"></a>Examples of usage: see example.js
+#### Examples of usage: see example.js
 
-#### <a name="example1"></a>1. Stream filter [vinyl] objects.
+#### 1. Stream filter [vinyl] objects.
 ```javascript
 gulp.src('./test/**/*.txt')
 	.pipe(abFilter('!**/block*')); // Exclude block files
 ```
 
-#### <a name="example2"></a>2. Stream filter [vinyl] objects and handlers.
+#### 2. Stream filter [vinyl] objects and handlers.
 ```javascript
 gulp.src('./test/**/*.txt')
 	.pipe(abFilter('**/b*.txt', {
@@ -109,7 +110,7 @@ gulp.src('./test/**/*.txt')
 	}));
 ```
 
-#### <a name="example3"></a>3. Use as a separator stream [vinyl] objects with a standard [branches](#branch) **yes** and **no**.
+#### 3. Use as a separator stream [vinyl] objects with a standard [branches](#branch) **yes** and **no**.
 ```javascript
 const yes = [ // This set of plugins will be executed sequentially
 	replaceP('r', '_'), // 1 gulp plugin
@@ -126,7 +127,7 @@ gulp.src('./test/**/*.txt')
 	.pipe(abFilter('**/*t.txt', yes, no));
 ```
 
-#### <a name="example4"></a>4. Separator stream [vinyl] objects with a standard [branch](#branch) **yes** and the handler end.
+#### 4. Separator stream [vinyl] objects with a standard [branch](#branch) **yes** and the handler end.
 ```javascript
 const end = (file, cb, obj) => {
 	if (obj.n === 'Yes') {
@@ -141,7 +142,7 @@ gulp.src('./test/**/*.txt')
 	.pipe(abFilter('**/*t.txt', replaceP('r', '_'), {end: end}));
 ```
 
-#### <a name="example5"></a>5. Use as a separator stream [vinyl] objects with array of named [branches](#branch_).
+#### 5. Use as a separator stream [vinyl] objects with array of named [branches](#branch).
 ```javascript
 const path = require('path');
 const pipe1 = (file, cb) => {
@@ -162,17 +163,17 @@ gulp.src('./test/**/*.txt')
 		[{n: 'block1', p: pipe1}, {n: 'txt', p: pipe2}]));
 ```
 
-#### <a name="example6"></a>6. Two ways for flush stream.
+#### 6. Two ways for flush stream.
 See example.js
 
-### <a name="relpath"></a>abFilter.relPath([vinyl])
+### abFilter.relPath([vinyl])
 Returns the relative path to the [vinyl] including the object name
 using the posix separators without the current directory.
 
-### <a name="match"></a>abFilter.match([vinyl], [condition](#condition) [, [minimathOptions]])
+### abFilter.match([vinyl], [condition](#condition) [, [minimathOptions]])
 Returns a value which depends on the type [condition](#condition).
 
-## <a name="Contribute"></a>Contribute
+## Contribute
 Please send your improvements and enhancements. To begin, you must perform preparatory steps:
 ```sh
 git clone https://github.com/talipoff/gulp-ab-filter
