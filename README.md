@@ -40,7 +40,7 @@ abFilter(condition [, branches ] [, options])
     +-> other ----------> boolean
 ```
 
-#### <a name="condition"></a>Condition
+#### Condition
 Possible types:
 * [RegExp] - regular expression.
 * [blob] string.
@@ -54,17 +54,17 @@ If function returns the string then used it as [branch](#branch) name else conve
 Notice:
 In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
 
-#### <a name="branch"></a>Branche
+#### Branch
 Parameter yes, no, namedBranch.p can be:
 * gulp plugin
 * function([vinyl], [cb](#cb), [obj](#obj))
 * an array containing the gulp plugins and functions in any combination.
 
-#### <a name="cb"></a>cb
+#### Cb
 Callback function that must be called with two parameters:: null or error and [vinyl] object.
 If the parameters are omitted, the object is not passed on.
 
-#### <a name="obj"></a>obj
+#### Obj
 A context object.
 It contains two properties: n - [branch](#branch) name and the s - link to the [branch](#branch) stream.
 [Branch](#branch) stream supports push.
