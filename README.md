@@ -54,7 +54,7 @@ If function returns the string then used it as [branch](#branch) name else conve
 Notice:
 In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
 
-#### Branch{#branch_}
+#### Branch #### {#branch_}
 Parameter yes, no, namedBranch.p can be:
 * gulp plugin
 * function([vinyl], [cb](#cb), [obj](#obj))
@@ -70,7 +70,7 @@ It contains two properties: n - [branch](#branch) name and the s - link to the [
 [Branch](#branch) stream supports push.
 Possible to set custom properties.
 
-#### The logic of the filter:{#logic}
+#### The logic of the filter: #### {#logic}
 1) [Condition](#condition) depending on its type is converted into `result`.
 2) If the parameter [branches](#branch) is missing then push [obj](#obj) into empty [branch](#branch) **yes**.
 3) If `result` === string then push [obj](#obj) into [branch](#branch) with the name = `result`.
