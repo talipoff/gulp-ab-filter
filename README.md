@@ -4,7 +4,7 @@
 [![Downloads][downloads-image]][downloads-url]
 Use it for filtering and separating stream [vinyl] objects.
 Easy to connect plugins in the chain for each branch.
-Create your handlers to objects, including with the ability to accumulate and discharge into the branch.
+Easy create custom handlers for objects.
 
 ## Installation
 ```sh
@@ -17,231 +17,160 @@ $ npm i -D gulp-ab-filter
 ```javascript
 // Import
 const gulp = require('gulp');
-const ab = require('gulp-ab-filter');
+const abFilter = require('gulp-ab-filter');
 ```
 
 ```
-ab(condition [, branches ] [, options])
-     |             |            |
-     |             +-> yes      +-{object}--+-> yes = Yes -|
-   (types)         +-> yes, no              +-> no =  No  -+-> set custom name for branches
-     |             +-> namedBranch []       +-> out = Out -|
-     |                   / | \              +-> debug - enable debug mode to control the route of objects
-     |   {n: Name, p: Pipe, stop: Boolean}  +-> end(vinyl, cb [, obj]) - main end handler for all branches
-     |                                      +-> flush(cb [, obj]) - main flush handler for all branches
-     +-> RegExp ---------------------+      +-> endName - end handler for branch with the specified name, replace main handler
-     +-> blob -----------------------+      +-> flushName - flush handler for branch with the specified name, replace main handler
-     +-> blob [] --------------------+      +-> minimatch - options which apply for blob condition
-     +-> function(vinyl)             |
-     |      |                        |
-     |      +-> String result        |
-     |      +-> other - convert -> --+-> Boolean result
-     |                               |
-     +-> other - convert ------------+
+abFilter(condition [, branches ] [, options])
+         /            /               |
+        /            +-> yes          +---{debug,               // enable debug mode to control the route of objects
+       /             +-> yes, no           end(vinyl, cb, obj), // main end handler for all branches
+      /              +-> namedBranch[]     flush(cb, obj),      // main flush handler for all branches
+     /                   / | \             minimatch,           // options which apply for blob condition
+    |  {n: Name, p: Pipe, stop: Boolean}  }
+    |
+    |                     result
+    +-> RegExp ---------> boolean
+    +-> blob -----------> boolean
+    +-> blob [] --------> boolean
+    +-> function(vinyl)
+    |      |
+    |      +-> string --> branch name
+    |      +-> other ---> boolean
+    +-> other ----------> boolean
 ```
 
 #### <a name="condition"></a>Condition
-In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
 Possible types:
-* Function - user-defined functions with one argument of type [vinyl].
-Returns the string to use named branches or automatically converted to a Boolean value.
 * [RegExp] - regular expression.
 * [blob] string.
-If [blob] starts with `!`, the `!` is discarded and [blob] is running the inversion.
+If [blob] starts with `!` this beginning is discarded, and the result is converted to the opposite.
 * Array [blob] strings.
-Only works the first match, the rest are ignored. It is possible to use negation.
-If the array uses only [blob] with `!` and not one does not work, then this is equivalent to the truth.
-* Other is converted to Boolean expression.
-For example: 1 - true, 0 - false
+Only works the first match, the rest are ignored.
+If the array is used only [blob] with `!` and and there are no matches then this is equivalent to true.
+* Function - user-defined function with [vinyl] argument.
+If function returns the string then used it as branch name else converted to a boolean.
+* Other is converted to boolean.
+Notice:
+In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
 
-#### <a name="name"></a>Name
-The name of the branch
-
-#### <a name="pipe"></a>Pipe
+#### <a name="branch"></a>Branches
 Parameter yes, no, namedBranch.p can be:
 * gulp plugin
-* function ([vinyl], [cb](#cb) [, [obj](#obj)])
+* function([vinyl], [cb](#cb), [obj](#obj))
 * an array containing the gulp plugins and functions in any combination.
 
 #### <a name="cb">cb
-Callback function that must be invoked with options: null or error and [vinyl] object.
+Callback function that must be called with two parameters:: null or error and [vinyl] object.
 If the parameters are omitted, the object is not passed on.
 
 #### <a name="obj">obj
 A context object.
-It contains two properties: n - [branch name](#name) and the s - link to the branch stream.
+It contains two properties: n - branch name and the s - link to the branch stream.
 Branch stream supports push.
+Possible to set custom properties.
 
 #### The logic of the filter:
-1) condition depending on its type is converted into *result*.
-2) If the parameter is missing branches, only the branch output **out**.
-It is possible to get objects for which the *result* = true or equal branch name **out**.
-See [example](#_filter).
-3) If there are branches, the objects for which the *result* = true will get standard branch **yes**.
-The objects for which the *result* = false will fall into the standard branch **no**.
-The objects for which the *result* of type String will be in the branch with the name *result* if there is
-or if it is not then branch **no** if available.
-If the object did not hit any one branch, he immediately falls in **out**.
-The objects after passing all of the branches also fall in **out**.
-If the property namedBranch.stop === true, then objects are not passed in **out**.
-4) You can set the handler end. It will get the object when you exit from all branches. See [example](#_filterEnd).
-5) You can set the end handler[Name](#name). It will include objects at the exit from the branch Name.
-6) You can install a handler flush. It will be called during the cleanup of all branches. See [example](#_filterEndFlush).
-7) You can set the end handler[Name](#name). It will be invoked when clearing branch Name.
+1) [Condition](#condition) depending on its type is converted into `result`.
+2) If the parameter branches is missing then push [obj](#obj) into empty [branch](#branch) **yes**.
+3) If `result` === string then push [obj](#obj) into [branch](#branch) with the name = `result`.
+If this branch not exists then push [obj](#obj) into [branch](#branch) **no**.
+4) If `result` === true then push [obj](#obj) into [branch](#branch) **yes**.
+5) If `result` === false then push [obj](#obj) into [branch](#branch) **no**.
+	6) If the property namedBranch.stop === true, then objects are not pushed.
 
-#### Examples of usage:
+#### Examples of usage: see example.js
 
-#### <a name="_filter"></a>Use as a filter stream [vinyl] objects.
+#### 1. Stream filter [vinyl] objects.
 ```javascript
-gulp.src('source/**/*.js')
-  .pipe(pluginA())
-  .pipe(gulp.dest('debug/js'))
-  .pipe(ab(condition[, options]))
-  .pipe(pluginB())
-  .pipe(gulp.dest('production/js'))
+gulp.src('./test/**/*.txt')
+	.pipe(abFilter('!**/block*')); // Exclude block files
 ```
 
-#### <a name="_filterEnd"></a>Filter using the handler end.
+#### 2. Stream filter [vinyl] objects and handlers.
 ```javascript
-gulp.src('source/**/*.js')
-  .pipe(pluginA())
-  .pipe(gulp.dest('debug/js'))
-  .pipe(ab(condition, {end: (object, cb, obj) => {
-    func1(object); // the func1 handles the object: change the name, content, etc.
-    cb(null, object);
-  }})
-  .pipe(pluginB())
-  .pipe(gulp.dest('production/js'))
+gulp.src('./test/**/*.txt')
+	.pipe(abFilter('**/b*.txt', {
+		end: (object, cb, obj) => {
+			if (obj._result === undefined) {
+				obj._result = new Vinyl({
+					base: object.base,
+					path: object.base + '/result.txt',
+					contents: Buffer.from(object.contents)
+				});
+			} else {
+				obj._result.contents = Buffer.concat([obj._result.contents, object.contents]);
+			}
+			cb(); // Don't push source files
+		}, flush: (cb, obj) => {
+			obj._result && obj.s.push(obj._result); // Push the result
+			cb();
+		}
+	}));
 ```
 
-#### <a name="_filterEndFlush"></a>Filter using handlers end and flushing stream.
+#### 3. Use as a separator stream [vinyl] objects with a standard [branches](#branch) **yes** and **no**.
 ```javascript
-gulp.src('source/**/*.js')
-  .pipe(pluginA())
-  .pipe(gulp.dest('debug/js'))
-  .pipe(ab(condition, {
-    end: (object, cb, obj) => {
-      if (obj._result === undefined) {
-        obj._result = new Vinyl({
-          base: object.base,
-          path: object.base + '/new-file.txt',
-          contents: Buffer.from(object.contents)
-        });
-      } else {
-        obj._result.contents = Buffer.concat([obj._result.contents, object.contents]);
-      }
-      cb(); // here block object transfer
-    }, flush: (cb, obj) => {
-      obj._result && obj.s.push(obj._result); // push the result
-      cb();
-    }
-  })
-  .pipe(pluginB())
-  .pipe(gulp.dest('production/js'))
+const yes = [ // This set of plugins will be executed sequentially
+	replaceP('r', '_'), // 1 gulp plugin
+	(file, cb) => { // Function as 2 plugin
+		// actions with the object, see examples in test.js
+		file.contents = Buffer.from(String(file.contents).replace('_', '*'));
+		cb(null, file); // Mandatory run the callback function
+	},
+	replaceP('*', '#') // 3 gulp plugin
+]; // Re-use of yes is unacceptable!
+const no = replaceP('b', 'B');
+
+gulp.src('./test/**/*.txt')
+	.pipe(abFilter('**/*t.txt', yes, no));
 ```
 
-#### <a name="_yes"></a>Use as a separator stream [vinyl] objects with a standard branch **yes**.
+#### 4. Separator stream [vinyl] objects with a standard [branch](#branch) **yes** and the handler end.
 ```javascript
-const yes = [plugin1(parameters), plugin2(parameters),
-  (object, cb) => {
-    // actions with the object, see examples in test.js
-    cb(null, object); // mandatory run the callback function
-  }, plugin3(parameters) ];
-    // re-use of yes is unacceptable!
-gulp.src('source/**/*.js')
-  .pipe(pluginA())
-  .pipe(gulp.dest('debug/js'))
-  .pipe(ab(condition, yes [, options]))
-  .pipe(pluginB())
-  .pipe(gulp.dest('production/js'))
+const end = (file, cb, obj) => {
+	if (obj.n === 'Yes') {
+		file.contents = Buffer.from(String(file.contents).replace('_', 'R'));
+	} else {
+		file.contents = Buffer.from(String(file.contents) + '=');
+	}
+	cb(null, file);
+};
+
+gulp.src('./test/**/*.txt')
+	.pipe(abFilter('**/*t.txt', replaceP('r', '_'), {end: end}));
 ```
 
-#### <a name="_yesNo">Use as a separator stream [vinyl] objects with a standard branches **yes** and **no**.
+#### 5. Use as a separator stream [vinyl] objects with array of named [branches](#branch).
 ```javascript
-gulp.src('source/**/*.js')
-  .pipe(pluginA())
-  .pipe(gulp.dest('debug/js'))
-  .pipe(ab(condition, yes, no, [, options]))
-  .pipe(pluginB())
-  .pipe(gulp.dest('production/js'))
+const path = require('path');
+const pipe1 = (file, cb) => {
+	file.contents = Buffer.from(String(file.contents) + '1');
+	cb(null, file);
+};
+const pipe2 = (file, cb) => {
+	file.contents = Buffer.from(String(file.contents) + '2');
+	cb(null, file);
+};
+
+gulp.src('./test/**/*.txt')
+	.pipe(abFilter(
+		file => {
+			const relPathParts = abFilter.relPath(file).split(path.posix.sep);
+			return relPathParts.length > 2 ? relPathParts[relPathParts.length-2] : '';
+		}, // get last segment of path
+		[{n: 'block1', p: pipe1}, {n: 'txt', p: pipe2}]));
 ```
 
-#### <a name="_yesEnd"></a>Separator stream [vinyl] objects with a standard branch **yes** and the handler end.
-```javascript
-gulp.src('source/**/*.js')
-  .pipe(ab(condition, yes , {end: (object, cb, obj) => {
-    // here you will get objects from yes and out branches
-    if(obj.n === 'Yes') { // check name of branch
-	  // certain actions with object
-    }
-    cb(null, object); // or just cb() if you don't want to pass the object on
-  }}))
-  .pipe(pluginA())
-  .pipe(gulp.dest('production/js'))
-```
-```javascript
-// example with a named handler end
-gulp.src('source/**/*.js')
-  .pipe(ab(condition, yes , {endYes: (object, cb, obj) => {
-    // here you will get objects from yes branch
-    // certain actions with object
-    cb(null, object); // or just cb() if you don't want to pass the object on
-  }, end: (object, cb, obj) => {
-    // here you will get objects only from Out stream
-    // this handler can be omitted if there is no need
-    // certain actions with object
-    cb(null, object); // or just cb() if you don't want to pass the object on
-  }}))
-  .pipe(pluginA())
-  .pipe(gulp.dest('production/js'))
-```
+#### 6. Two ways for flush stream.
+See example.js
 
-#### <a name="_named"></a>Use as a separator stream [vinyl] objects with array of named branches.
-```javascript
-gulp.src('source/**/*.js')
-  .pipe(pluginA())
-  .pipe(gulp.dest('debug/js'))
-  .pipe(ab(condition, [{n: 'Yes', p: pipe1}, {n: 'Name1', p: pipe2}, {n: 'Name2', p: pipe3}], [, options]))
-  .pipe(pluginB())
-  .pipe(gulp.dest('production/js'))
-```
+### <a name="relPath"></a>abFilter.relPath([vinyl])
+Returns the relative path to the [vinyl] including the object name
+using the posix separators without the current directory.
 
-### <a name="relPath"></a>ab.relPath([vinyl])
-Returns the relative path to the [vinyl] including the object name,
-but without the current directory using the posix separators.
-
-### ab.match([vinyl], [condition](#condition) [, [minimathOptions]])
+### abFilter.match([vinyl], [condition](#condition) [, [minimathOptions]])
 Returns a value which depends on the type [condition](#condition).
-
-#### Examples of usage:
-```javascript
-// condition as a function of
-let result = ab.match(object,
-  object => {
-    if(object.isDirectory()) {
-      return false;
-    }
-    if(object.dirname === 'test') {
-      return false;
-    }
-    return true;
-  });
-// True for all js files ending in z
-let result = ab.match(object, /z\.js$/);
-// True for all js files in the current directory ending in a 1 or 2
-let result = ab.match(object, '*[1|2].js');
-// True for all js files in all folders starting from the current
-let result = ab.match(object, '**/*.js');
-// True for all js files in all folders starting from the current
-let result = ab.match(object, '*.js', {matchBase: true});
-// Use of negation:
-// True for all files except js
-let result = ab.match(object, '!*.js', {matchBase: true});
-// True for all js files except starting with b
-let result = ab.match(object, ['!**/b*.js', '**/*.js']);
-// True for all js files in addition to beginning with a b, but not with ba
-let result = ab.match(object, ['**/ba*.js', '!**/b*.js', '**/*.js']);
-```
 
 ## Contribute
 Please send your improvements and enhancements. To begin, you must perform preparatory steps:

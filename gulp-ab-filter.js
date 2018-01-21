@@ -43,11 +43,16 @@ function match(file, condition, options) {
 	return Boolean(condition);
 }
 
-module.exports = (condition, p1, p2, userConfig) => {
+module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line complexity
 	const np = Array.isArray(p1) && typeof p1[0] !== 'function' && !(p1[0] instanceof Stream); // Named pipes
 	const pipesV = np ? p1 : [];
-	let config = Object.assign({yes: 'Yes', no: 'No', out: 'Out'}, np ? p2 : userConfig);
-	function checkPar(p, n) {
+	const yes = 'Yes';
+	const no = 'No';
+	const nameFlush = 'flush';
+	const nameEnd = 'end';
+
+	let config = Object.assign({}, np ? p2 : userConfig);
+	function checkPar(n, p) {
 		if (typeof p === 'function' || p instanceof Stream || Array.isArray(p)) {
 			pipesV.push({n, p});
 			return true;
@@ -55,56 +60,29 @@ module.exports = (condition, p1, p2, userConfig) => {
 		config = Object.assign(config, p);
 	}
 	if (!np) {
-		checkPar(p1, config.yes) && checkPar(p2, config.no);
+		checkPar(yes, p1) && checkPar(no, p2);
 	}
-	['yes', 'no', 'out'].forEach(item => {
-		config[item] = String(config[item]);
-	});
+	if (pipesV.length === 0) {
+		checkPar(yes, []);
+	} else if (pipesV.length === 1) {
+		if (pipesV[0].n === yes) {
+			checkPar(no, []);
+		} else if (pipesV[0].n === no) {
+			checkPar(yes, []);
+		}
+	}
+
+	function logFile(name, file) {
+		let s = typeof file === 'string' ? file : relPath(file);
+		if (s.length > 0) {
+			s = ' > "' + s + '"';
+		}
+		config.debug && console.log(`> ${name}${s}`);
+	}
 
 	const pipesEnd = new Map();
 	const pipes = {};
-
-	function logFile(name, file) {
-		config.debug && console.log(`> ${name} > "${typeof file === 'string' ? file : relPath(file)}"`);
-	}
-
-	function addTransform(stream, name) {
-		let nameH = 'end' + name;
-		if (!config[nameH]) {
-			nameH = 'end';
-		}
-		const end = config[nameH];
-		if (end) {
-			stream._transform = (file, enc, cb) => {
-				logFile(name + '_' + nameH, file);
-				const uo = pipesEnd.get(name);
-				uo.flush || end(file, cb, uo);
-			};
-			stream.resume();
-		}
-	}
-
-	function addFlush(stream, name) {
-		let nameH = 'flush' + name;
-		if (!config[nameH]) {
-			nameH = 'flush';
-		}
-		const flush = config[nameH];
-		if (flush) {
-			stream._flush = cb => {
-				logFile(name + '_' + nameH, '');
-				const uo = pipesEnd.get(name);
-				uo.flush = true;
-				flush(cb, uo);
-			};
-		}
-	}
-
 	const proxy = new Stream.PassThrough({objectMode: true});
-	pipesEnd.set(config.out, {s: proxy, n: config.out});
-	addFlush(proxy, config.out);
-	addTransform(proxy, config.out);
-	pipes[config.out] = proxy;
 
 	const selector = new Stream.Transform({objectMode: true});
 	selector._transform = (file, enc, done) => {
@@ -120,19 +98,10 @@ module.exports = (condition, p1, p2, userConfig) => {
 			pipes[name].write(file);
 		}
 
-		if (pipesV.length === 0) { // Only filter
-			if (cond === true || cond === config.out) {
-				write(config.out);
-			}
-		} else {
-			const condS = (typeof cond === 'boolean') ? (cond ? config.yes : config.no) : cond;
-			write(condS);
-			if (!fw && typeof cond === 'string' && cond !== config.no) {
-				write(config.no);
-			}
-			if (!fw) {
-				write(config.out);
-			}
+		const condS = (typeof cond === 'boolean') ? (cond ? yes : no) : cond;
+		write(condS);
+		if (!fw) {
+			write(no);
 		}
 		done();
 	};
@@ -140,6 +109,7 @@ module.exports = (condition, p1, p2, userConfig) => {
 	for (const p of pipesV) {
 		const plugins = Array.isArray(p.p) ? p.p : [p.p];
 		const name = String(p.n);
+		// Console.log('pipesV:'+name);
 		let s;
 		for (const el of plugins) {
 			let plugin;
@@ -172,30 +142,60 @@ module.exports = (condition, p1, p2, userConfig) => {
 
 		const se = new Stream.PassThrough({objectMode: true});
 		pipesEnd.set(name, {s: se, n: name});
-		addFlush(se, name);
-		addTransform(se, name);
-		se.on('end', () => {
+
+		const end = config[nameEnd];
+		if (end) {
+			se._transform = (file, enc, cb) => {
+				logFile(name + '_' + nameEnd, file);
+				const uo = pipesEnd.get(name);
+				uo.flush || end(file, cb, uo);
+			};
+			se.resume();
+		}
+
+		const flush = config[nameFlush];
+		if (flush) {
+			se._flush = cb => {
+				logFile(name + '_' + nameFlush, '');
+				const uo = pipesEnd.get(name);
+				uo.flush = true;
+				flush(cb, uo);
+			};
+		}
+
+		const seEnd = () => {
 			pipesEnd.delete(name);
-			if (pipesEnd.size < 2) {
+			if (pipesEnd.size < 1) {
 				proxy.end();
 			}
-		});
-		s = s.pipe(se);
+		};
+		se.on('end', seEnd);
+		// Se.on('finish', seEnd);
+		if (s) {
+			s = s.pipe(se);
+		} else {
+			s = se;
+			pipes[name] = s;
+		}
 
 		if (!p.stop) {
 			s.pipe(proxy, {end: false});
 		}
 	}
 
-	selector.on('end', () => {
+	const selectorEnd = () => {
 		let c = 0;
 		// eslint-disable-next-line guard-for-in
 		for (const name in pipes) {
-			(name !== config.out) && pipes[name].end();
+			pipes[name].end();
 			c++;
 		}
-		(c === 1) && proxy.end();
-	});
+		(c === 0) && proxy.end();
+	};
+
+	selector.on('end', selectorEnd);
+	// Selector.on('finish', selectorEnd);
+
 	selector.resume(); // Switch the stream into flowing mode
 
 	proxy.once('pipe', src => {

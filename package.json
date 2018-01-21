@@ -1,6 +1,6 @@
 {
   "name": "gulp-ab-filter",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "gulp smart filter",
   "author": "Dmitry Talipov <talipoff@gmail.com> (https://github.com/talipoff)",
   "license": "MIT",
@@ -19,7 +19,7 @@
     "match"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=5"
   },
   "scripts": {
     "example": "node test/example.js",
@@ -38,6 +38,5 @@
     "mocha": "^3.3.0",
     "vinyl": "^2.0.2"
   },
-  "xo": {
-  }
+  "xo": {}
 }
