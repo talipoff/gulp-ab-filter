@@ -62,9 +62,9 @@ Parameter yes, no, namedBranch.p can be:
 
 #### NamedBranch
 Array from objects with properties:
-*namedBranch.n - name branch
-*namedBranch.p - [branch](#branches)
-*namedBranch.stop - don'n push objects to out
+* namedBranch.n - name branch
+* namedBranch.p - [branch](#branches)
+* namedBranch.stop - don'n push objects to out
 
 #### Cb
 Callback function that must be called with two parameters:: null or error and [vinyl] object.
