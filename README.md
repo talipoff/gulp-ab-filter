@@ -59,6 +59,7 @@ Parameter yes, no, namedBranch.p can be:
 * gulp plugin
 * function([vinyl], [cb](#cb), [obj](#obj))
 * an array containing the gulp plugins and functions in any combination.
+
 namedBranch.n - name branch
 namedBranch.stop - don'n push objects to out
 
