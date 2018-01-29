@@ -51,8 +51,8 @@ If the array is used only [blob] with `!` and and there are no matches then this
 * Function - user-defined function with [vinyl] argument.
 If function returns the string then used it as [branch](#branches) name else converted to a boolean.
 * Other is converted to boolean.
-Notice:
-In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
+
+Notice: In the [RegExp] and [blob] is passed the function result [relPath](#relPath).
 
 #### Branches
 Parameter yes, no, namedBranch.p can be:
@@ -60,8 +60,11 @@ Parameter yes, no, namedBranch.p can be:
 * function([vinyl], [cb](#cb), [obj](#obj))
 * an array containing the gulp plugins and functions in any combination.
 
-namedBranch.n - name branch
-namedBranch.stop - don'n push objects to out
+#### NamedBranch
+Array from objects with properties:
+*namedBranch.n - name branch
+*namedBranch.p - [branch](#branches)
+*namedBranch.stop - don'n push objects to out
 
 #### Cb
 Callback function that must be called with two parameters:: null or error and [vinyl] object.
@@ -76,6 +79,7 @@ Possible to set custom properties.
 #### The logic of the filter:
 1) [Condition](#condition) depending on its type is converted into `result`.
 2) If the parameter [branches](#branches) is missing then only push [obj](#obj) into empty [branch](#branches) *yes*.
+The [branch](#branches) *no* does not exist.
 3) If `result` === string then push [obj](#obj) into [branch](#branches) with the name = `result`.
 If this [branch](#branches) not exists then push [obj](#obj) into [branch](#branches) *no*.
 4) If `result` === true then push [obj](#obj) into [branch](#branches) *yes*.
