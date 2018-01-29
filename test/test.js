@@ -403,27 +403,43 @@ describe('use end handler:', () => {
 
 describe('array of standart named pipes:', () => {
 	it('Yes', done => {
-		testMatch(abFilter(ss + '*2.txt', [{n: yes, p: func1}]),
+		testMatch(abFilter(ss + '*2.txt', [{n: yes, p: func1}]), // Condition = boolean, yes > yes, no > empty no
 		[root, file1, m(file2, f1)], src, done);
 	});
 	it('No', done => {
-		testMatch(abFilter(ss + '*2.txt', [{n: no, p: func1}]),
+		testMatch(abFilter(ss + '*2.txt', [{n: no, p: func1}]), // Condition = boolean, yes > empty yes, no > no
 		[m(root, f1), m(file1, f1), file2], src, done);
 	});
 	it('Yes & No', done => {
-		testMatch(abFilter(ss + '*1.txt', [{n: yes, p: func1}, {n: no, p: func2}]),
+		testMatch(abFilter(ss + '*1.txt', [{n: yes, p: func1}, {n: no, p: func2}]), // Condition = boolean, yes > yes, no > no
 		[m(file1, f1), m(file2, f2)], src2, done);
+	});
+	it('Yes&Stop', done => {
+		testMatch(abFilter(ss + '*2.txt', [{n: yes, p: func1, stop: 1}], {end: finalizerPipes}),
+		{Out: [root, file1], No: [root, file1], Yes: [m(file2, f1)]}, src, done);
+	});
+	it('No&Stop', done => {
+		testMatch(abFilter(ss + '*2.txt', [{n: no, p: func1, stop: 1}], {end: finalizerPipes}),
+		{Out: [file2], No: [m(root, f1), m(file1, f1)], Yes: [file2]}, src, done);
+	});
+	it('Yes&Stop & No&Stop', done => {
+		testMatch(abFilter(ss + '*2.txt', [{n: yes, p: func1, stop: 1}, {n: no, p: func2, stop: 1}], {end: finalizerPipes}),
+		{Out: [], No: [m(file1, f2)], Yes: [m(file2, f1)]}, src2, done);
 	});
 });
 
 describe('array of custom named pipes:', () => {
 	it('one pipe', done => {
-		testMatch(abFilter(file => abFilter.relPath(file) === 'test/txt/root.txt' ? 'v1' : false,	[{n: 'v1', p: func1}]),
-		[m(root, f1)], src, done);
+		testMatch(abFilter(file => abFilter.relPath(file) === 'test/txt/root.txt' ? 'v1' : false, [{n: 'v1', p: func1}]),
+		[m(root, f1), file1, file2], src, done);
+	});
+	it('one pipe with stop', done => {
+		testMatch(abFilter(file => abFilter.relPath(file) === 'test/txt/root.txt' ? 'v1' : false,	[{n: 'v1', p: func1, stop: 1}], {end: finalizerPipes}),
+		{Out: [file1, file2], v1: [m(root, f1)], No: [file1, file2]}, src, done);
 	});
 	it('2 pipes', done => {
 		testMatch(abFilter(file => file.path.slice(-5), [{n: 't.txt', p: func1}, {n: '1.txt', p: func2}]),
-		[m(root, f1), m(file1, f2)], src, done);
+		[m(root, f1), m(file1, f2), file2], src, done);
 	});
 	it('2 pipes with No', done => {
 		testMatch(abFilter(file => file.path.slice(-5), [{n: 't.txt', p: func1}, {n: '1.txt', p: func2}, {n: no, p: func3}]),
@@ -439,7 +455,7 @@ describe('array of custom named pipes:', () => {
 	});
 	it('2 pipes & unused Yes', done => {
 		testMatch(abFilter(file => file.path.slice(-5), [{n: 't.txt', p: func1}, {n: '1.txt', p: func2}, {n: yes, p: func3}]),
-		[m(root, f1), m(file1, f2)], src, done);
+		[m(root, f1), m(file1, f2), file2], src, done);
 	});
 	it('2 pipes & boolean Yes', done => {
 		testMatch(abFilter(file => {
@@ -458,28 +474,28 @@ describe('array of custom named pipes:', () => {
 describe('use end handler with named pipes:', () => {
 	it('one pipe', done => {
 		testMatch(abFilter(file => abFilter.relPath(file) === 'test/txt/root.txt' ? 'v1' : false,	[{n: 'v1', p: func1}], {end: func1}),
-		[m(root, f1, f1)], src, done);
+		[m(root, f1, f1), m(file1, f1), m(file2, f1)], src, done);
 	});
 	it('one pipe, select v1', done => {
 		testMatch(abFilter(file => abFilter.relPath(file) === 'test/txt/root.txt' ? 'v1' : false,
 			[{n: 'v1', p: func1}], {end: (file, cb, obj) => {
 				obj.n === 'v1' ? func4(file, cb, obj) : cb(null, file);
 			}}),
-		[m(root, f1, f4)], src, done);
+		[m(root, f1, f4), file1, file2], src, done);
 	});
 	it('two pipes, select 1', done => {
 		testMatch(abFilter(file => abFilter.relPath(file).slice(-5)[0],
 			[{n: '1', p: func1}, {n: '2', p: func2}], {end: (file, cb, obj) => {
 				obj.n === '1' ? func4(file, cb, obj) : cb(null, file);
 			}}),
-		[m(file1, f1, f4), m(file2, f2)], src, done);
+		[root, m(file1, f1, f4), m(file2, f2)], src, done);
 	});
 	it('one pipe, no match', done => {
 		testMatch(abFilter(false,
 			[{n: 'v1', p: func1}], {end: (file, cb, obj) => {
 				obj.n === 'v1' ? func4(file, cb, obj) : cb(null, file);
 			}}),
-		[], src, done);
+		[root, file1, file2], src, done);
 	});
 });
 

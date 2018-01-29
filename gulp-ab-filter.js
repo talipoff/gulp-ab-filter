@@ -44,40 +44,54 @@ function match(file, condition, options) {
 }
 
 module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line complexity
-	const np = Array.isArray(p1) && typeof p1[0] !== 'function' && !(p1[0] instanceof Stream); // Named pipes
-	const pipesV = np ? p1 : [];
 	const yes = 'Yes';
 	const no = 'No';
 	const nameFlush = 'flush';
 	const nameEnd = 'end';
 
-	let config = Object.assign({}, np ? p2 : userConfig);
-	function checkPar(n, p) {
+	let config;
+	let pipesV;
+
+	function checkPar(n, p, stop = false) {
 		if (typeof p === 'function' || p instanceof Stream || Array.isArray(p)) {
-			pipesV.push({n, p});
+			// This is branch
+			for (const el of pipesV) {
+				if (el.n === n) {
+					return true;
+				}
+			}
+			pipesV.push({n, p, stop});
 			return true;
 		}
-		config = Object.assign(config, p);
-	}
-	if (!np) {
-		checkPar(yes, p1) && checkPar(no, p2);
-	}
-	if (pipesV.length === 0) {
-		checkPar(yes, []);
-	} else if (pipesV.length === 1) {
-		if (pipesV[0].n === yes) {
-			checkPar(no, []);
-		} else if (pipesV[0].n === no) {
-			checkPar(yes, []);
-		}
+		config = p;
 	}
 
+	if (Array.isArray(p1) && typeof p1[0] !== 'function' && !(p1[0] instanceof Stream)) {
+		// NamedBranch[]
+		pipesV = p1;
+		config = p2;
+		checkPar(yes, []);
+		checkPar(no, []);
+	} else {
+		pipesV = [];
+		checkPar(yes, p1) && checkPar(no, p2) && (config = userConfig);
+		if (pipesV.length === 0) {
+			checkPar(yes, []);
+		} else if (pipesV.length === 1) {
+			checkPar(no, []);
+		}
+	}
+	config = config || {};
+
 	function logFile(name, file) {
+		if (!config.debug) {
+			return;
+		}
 		let s = typeof file === 'string' ? file : relPath(file);
 		if (s.length > 0) {
 			s = ' > "' + s + '"';
 		}
-		config.debug && console.log(`> ${name}${s}`);
+		console.log(`> ${name}${s}`);
 	}
 
 	const pipesEnd = new Map();
@@ -91,6 +105,9 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 
 		function write(name) {
 			if (!pipes[name]) {
+				if (pipesV.length > 1) {
+					logFile(name, 'branch not found');
+				}
 				return;
 			}
 			fw++;
@@ -109,7 +126,6 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 	for (const p of pipesV) {
 		const plugins = Array.isArray(p.p) ? p.p : [p.p];
 		const name = String(p.n);
-		// Console.log('pipesV:'+name);
 		let s;
 		for (const el of plugins) {
 			let plugin;
@@ -170,7 +186,6 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 			}
 		};
 		se.on('end', seEnd);
-		// Se.on('finish', seEnd);
 		if (s) {
 			s = s.pipe(se);
 		} else {
@@ -178,7 +193,9 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 			pipes[name] = s;
 		}
 
-		s.pipe(proxy, {end: false});
+		if (!p.stop) {
+			s.pipe(proxy, {end: false});
+		}
 	}
 
 	const selectorEnd = () => {
@@ -192,7 +209,6 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 	};
 
 	selector.on('end', selectorEnd);
-	// Selector.on('finish', selectorEnd);
 
 	selector.resume(); // Switch the stream into flowing mode
 

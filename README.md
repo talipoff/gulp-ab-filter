@@ -26,8 +26,8 @@ abFilter(condition [, branches ] [, options])
         /            +-> yes          +---{debug,               // enable debug mode to control the route of objects
        /             +-> yes, no           end(vinyl, cb, obj), // main end handler for all branches
       /              +-> namedBranch[]     flush(cb, obj),      // main flush handler for all branches
-     /                   / | \             minimatch            // options which apply for blob condition
-    |              {n: Name, p: Pipe }    }
+     /                   / | \             minimatch,           // options which apply for blob condition
+    |  {n: Name, p: Pipe, stop: Boolean}  }
     |
     |                     result
     +-> RegExp ---------> boolean
@@ -59,6 +59,8 @@ Parameter yes, no, namedBranch.p can be:
 * gulp plugin
 * function([vinyl], [cb](#cb), [obj](#obj))
 * an array containing the gulp plugins and functions in any combination.
+namedBranch.n - name branch
+namedBranch.stop - don'n push objects to out
 
 #### Cb
 Callback function that must be called with two parameters:: null or error and [vinyl] object.
@@ -77,7 +79,6 @@ Possible to set custom properties.
 If this [branch](#branches) not exists then push [obj](#obj) into [branch](#branches) *no*.
 4) If `result` === true then push [obj](#obj) into [branch](#branches) *yes*.
 5) If `result` === false then push [obj](#obj) into [branch](#branches) *no*.
-6) If the property namedBranch.stop === true, then objects are not pushed.
 
 #### Examples of usage: see [example.js]
 
