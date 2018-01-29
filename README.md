@@ -75,7 +75,7 @@ Possible to set custom properties.
 
 #### The logic of the filter:
 1) [Condition](#condition) depending on its type is converted into `result`.
-2) If the parameter [branches](#branches) is missing then push [obj](#obj) into empty [branch](#branches) *yes*.
+2) If the parameter [branches](#branches) is missing then only push [obj](#obj) into empty [branch](#branches) *yes*.
 3) If `result` === string then push [obj](#obj) into [branch](#branches) with the name = `result`.
 If this [branch](#branches) not exists then push [obj](#obj) into [branch](#branches) *no*.
 4) If `result` === true then push [obj](#obj) into [branch](#branches) *yes*.
