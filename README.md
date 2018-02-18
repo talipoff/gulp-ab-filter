@@ -24,11 +24,11 @@ const abFilter = require('gulp-ab-filter');
 abFilter(condition [, branches ] [, options])
          /            /               |
         /            +-> yes          +---{debug,               // enable debug mode to control the route of objects
-       /             +-> yes, no           end(vinyl, cb, obj), // main end handler for all branches
+       /             +-> yes, no           end(vinyl, cb, obj), // main close handler for all branches
       /              +-> namedBranch[]     flush(cb, obj),      // main flush handler for all branches
      /                   / | \             minimatch,           // options which apply for blob condition
-    |  {n: Name, p: Pipe, stop: Boolean}  }
-    |
+    |  {n: Name, p: Pipe, stop: Boolean}   name                 // name for debug mode
+    |                                     }
     |                     result
     +-> RegExp ---------> boolean
     +-> blob -----------> boolean
@@ -75,6 +75,12 @@ A context object.
 It contains two properties: n - [branch](#branches) name and the s - link to the [branch](#branches) stream.
 [Branch](#branches) stream supports push.
 Possible to set custom properties.
+
+#### End handler
+Call for each branches for each objects when go out of branch.
+
+#### Flush handler
+Call for each branch, before closure.
 
 #### The logic of the filter:
 1) [Condition](#condition) depending on its type is converted into `result`.

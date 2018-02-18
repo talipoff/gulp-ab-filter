@@ -48,6 +48,9 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 	const no = 'No';
 	const nameFlush = 'flush';
 	const nameEnd = 'end';
+	const readyProperty = 'abReady';
+	const nameStreamObj = '_gulpAbFilter';
+	const namePushAdapter = 'push_';
 
 	let config;
 	let pipesV;
@@ -82,45 +85,77 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 		}
 	}
 	config = config || {};
+	if (!('name' in config)) {
+		config.name = '';
+	}
 
 	function logFile(name, file) {
 		if (!config.debug) {
 			return;
 		}
-		let s = typeof file === 'string' ? file : relPath(file);
+		let s;
+		if (file === undefined) {
+			s = '';
+		} else if (file !== null && typeof file === 'object') {
+			s = relPath(file);
+		} else {
+			s = String(file);
+		}
 		if (s.length > 0) {
 			s = ' > "' + s + '"';
 		}
-		console.log(`> ${name}${s}`);
+		const pn = config.name === '' ? '' : '(' + config.name + ')';
+		console.log(`${pn} > ${name}${s}`);
 	}
 
-	const pipesEnd = new Map();
-	const pipes = {};
-	const proxy = new Stream.PassThrough({objectMode: true});
+	const pipes = {}; // Start branch
+	const pipesEnd = new Map(); // End branch
+	const end = config[nameEnd];
+	const flush = config[nameFlush];
+	let flagNull = 0;
+	let pipesSize = 1;
 
-	const selector = new Stream.Transform({objectMode: true});
-	selector._transform = (file, enc, done) => {
+	const selector = new Stream.PassThrough({objectMode: true});
+
+	selector._transform = (file, enc, cb) => {
+		if (readyProperty in file) {
+			delete file[readyProperty];
+			cb(null, file);
+			return;
+		}
+
 		const cond = match(file, condition, config.minimatch);
-		let fw = 0;
 
-		function write(name) {
-			if (!pipes[name]) {
+		function write_(name) {
+			if (!(name in pipes)) {
 				if (pipesV.length > 1) {
 					logFile(name, 'branch not found');
 				}
 				return;
 			}
-			fw++;
 			logFile(name, file);
-			pipes[name].write(file);
+
+			if (pipes[name] === null) {
+				if (end && !flush) {
+					logFile(name + '_out', file);
+					end(file, cb, {s: selector, n: name});
+				} else {
+					cb(null, file);
+				}
+			} else {
+				pipes[name].write(file);
+				cb();
+			}
+			return 1;
 		}
 
 		const condS = (typeof cond === 'boolean') ? (cond ? yes : no) : cond;
-		write(condS);
-		if (!fw) {
-			write(no);
+
+		if (!write_(condS)) {
+			if (!write_(no)) {
+				cb();
+			}
 		}
-		done();
 	};
 
 	for (const p of pipesV) {
@@ -130,10 +165,10 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 		for (const el of plugins) {
 			let plugin;
 			if (typeof el === 'function') {
-				const tempStream = new Stream.Transform({objectMode: true});
-				tempStream._gulpAbFilter = {s: tempStream, n: name};
+				const tempStream = new Stream.PassThrough({objectMode: true});
+				tempStream[nameStreamObj] = {s: tempStream, n: name};
 				tempStream._transform = (file, enc, done) => {
-					el(file, done, tempStream._gulpAbFilter);
+					el(file, done, tempStream[nameStreamObj]);
 				};
 				plugin = tempStream;
 			} else {
@@ -156,75 +191,82 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 			}
 		}
 
+		if (!s && !flush) {
+			pipes[name] = null;
+			continue;
+		}
+		pipesSize++;
+
 		const se = new Stream.PassThrough({objectMode: true});
 		pipesEnd.set(name, {s: se, n: name});
 
-		const end = config[nameEnd];
 		if (end) {
 			se._transform = (file, enc, cb) => {
-				logFile(name + '_' + nameEnd, file);
+				logFile(name + '_out', file);
 				const uo = pipesEnd.get(name);
 				uo.flush || end(file, cb, uo);
 			};
 			se.resume();
 		}
 
-		const flush = config[nameFlush];
+		se[namePushAdapter] = se.push;
+		se.push = file => {
+			if (file) {
+				file[readyProperty] = name;
+			}
+			if (!p.stop || file === null) {
+				selector.push(file);
+			}
+		};
+
 		if (flush) {
 			se._flush = cb => {
-				logFile(name + '_' + nameFlush, '');
+				logFile(name + '_flush');
 				const uo = pipesEnd.get(name);
 				uo.flush = true;
-				flush(cb, uo);
+				flush(cb, uo); // For each branches
 			};
 		}
 
 		const seEnd = () => {
-			pipesEnd.delete(name);
-			if (pipesEnd.size < 1) {
-				proxy.end();
-			}
+			selector.end();
 		};
 		se.on('end', seEnd);
+
 		if (s) {
 			s = s.pipe(se);
 		} else {
 			s = se;
 			pipes[name] = s;
 		}
-
-		if (!p.stop) {
-			s.pipe(proxy, {end: false});
-		}
 	}
 
-	const selectorEnd = () => {
-		let c = 0;
-		// eslint-disable-next-line guard-for-in
-		for (const name in pipes) {
-			pipes[name].end();
-			c++;
-		}
-		(c === 0) && proxy.end();
-	};
-
-	selector.on('end', selectorEnd);
+	if (pipesSize > 0) {
+		// To intercept the end
+		selector[namePushAdapter] = selector.push;
+		selector.push = file => {
+			if (file === null) {
+				if (flagNull === 0) {
+					// eslint-disable-next-line guard-for-in
+					for (const name in pipes) {
+						if (pipes[name] !== null) {
+							pipes[name].end(); // Close all branches
+						}
+					}
+				}
+				flagNull++;
+				if (flagNull < pipesSize) {
+					return; // Don't push null, to wait for the closing of all branches
+				}
+			} else {
+				delete file[readyProperty];
+			}
+			selector[namePushAdapter](file);
+		};
+	}
 
 	selector.resume(); // Switch the stream into flowing mode
-
-	proxy.once('pipe', src => {
-		if (typeof src.unpipe === 'function') {
-			src.unpipe(proxy);
-		} else {
-			for (const listener of proxy.listeners('close')) {
-				if (listener.name === 'cleanup' || listener.name === 'onclose') {
-					listener.call(proxy);
-				}
-			}
-		}
-		src.pipe(selector);
-	});
-	return proxy;
+	return selector;
 };
 
 module.exports.match = match;

@@ -13,7 +13,7 @@ const logger = (title, p) => console.log(`\x1b[31m ${title}: ${JSON.stringify(p)
 
 // This is primitive plugin with delay for testing
 const replaceP = function (search, replacement, delay) {
-	delay = delay || 1;
+	delay = delay || 50;
 	const tempStream = new Stream.Transform({objectMode: true});
 	tempStream._transform = (file, enc, done) => {
 		setTimeout(() => {
@@ -87,6 +87,7 @@ const nr = 'test/txt/root.txt';
 const n1 = 'test/txt/block1/block1-file1.txt';
 const n2 = 'test/txt/block1/block1-file2.txt';
 const n3 = 'test/txt/block1/block1-file3.txt';
+const n4 = 'test/txt/block1/block1-file4.txt';
 const cr = 'root.txt';
 const c1 = 'block1-file1.txt';
 const c2 = 'block1-file2.txt';
@@ -101,6 +102,8 @@ const file1 = {file: n1, contents: c1};
 const file2 = {file: n2, contents: c2};
 const file3 = {file: n3, contents: c1 + '_' + c2};
 const file3_1 = {file: n3, contents: c1 + '1_' + c2 + '1'};
+const file4_1 = {file: n4, contents: c1 + '1'};
+const file4_2 = {file: n4, contents: c2 + '1'};
 const src = ['test/txt/**/*.txt'];
 const src2 = ['test/txt/**/b*.txt'];
 
@@ -244,8 +247,14 @@ describe('match:', () => {
 });
 
 describe('filter:', () => {
+	it('Boolean false', done => {
+		testMatch(abFilter(0), [], src, done);
+	});
+	it('Boolean true', done => {
+		testMatch(abFilter(1), [root, file1, file2], src, done);
+	});
 	it('blob', done => {
-		testMatch(abFilter('*/*/*t.txt', {debug: 1}), [root], src, done);
+		testMatch(abFilter('*/*/*t.txt'), [root], src, done);
 	});
 	it('blob&!', done => {
 		testMatch(abFilter('!*t.txt', {minimatch: {matchBase: true}}), [file1, file2], src, done);
@@ -266,7 +275,7 @@ describe('filter:', () => {
 		testMatch(abFilter(() => 'No'), [], src, done);
 	});
 	it('function return false', done => {
-		testMatch(abFilter(() => false, {debug: 1}), [], src, done);
+		testMatch(abFilter(() => false), [], src, done);
 	});
 });
 
@@ -282,17 +291,18 @@ describe('filter with end handler:', () => {
 	it('push new file', done => {
 		testMatch(abFilter('*[1|2].txt', {minimatch: {matchBase: true}, end:
 			(file, cb, obj) => {
-				obj.s.push(file);
-				func1(file, cb);
+				const newFile = new Vinyl({base: file.base, path: file.base + '/block1/block1-file4.txt', contents: Buffer.from(f1(String(file.contents)))});
+				obj.s.push(newFile);
+				cb();
 			}
 		}),
-		[file1, m(file1, f1), file2, m(file2, f1)], src, done);
+		[file4_1, file4_2], src, done);
 	});
 });
 
 describe('filter with end handler and flush stream:', () => {
 	it('push sources', done => {
-		testMatch(abFilter('*[1|2].txt', {minimatch: {matchBase: true}, end: funcEnd, flush: funcFlush}),
+		testMatch(abFilter('*[1|2].txt', {debug: 1, minimatch: {matchBase: true}, end: funcEnd, flush: funcFlush}),
 		[file1, file2, file3], src, done);
 	});
 	it('no push', done => {
@@ -325,10 +335,11 @@ describe('pipe Yes:', () => {
 	it('two functions with add new file', done => {
 		testMatch(abFilter(ss + '*2.txt', [func1,
 			(file, cb, obj) => {
-				obj.s.push(file);
+				const newFile = new Vinyl({base: file.base, path: file.base + '/block1/block1-file4.txt', contents: Buffer.from(String(file.contents))});
+				obj.s.push(newFile);
 				cb(null, file);
 			}]),
-		[root, file1, m(file2, f1), m(file2, f1)], src, done);
+		[root, file1, file4_2, m(file2, f1)], src, done);
 	});
 	it('two plugin', done => {
 		testMatch(abFilter(ss + '*2.txt', [replaceP('txt', 'txt_'), replaceP('txt_', 'txt2')]),
