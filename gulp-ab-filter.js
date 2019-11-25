@@ -162,6 +162,7 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 		const plugins = Array.isArray(p.p) ? p.p : [p.p];
 		const name = String(p.n);
 		let s;
+		let ind = 0;
 		for (const el of plugins) {
 			let plugin;
 			if (typeof el === 'function') {
@@ -177,6 +178,11 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 					throw new Error(`stream "${name}" isn't readable!`);
 				}
 			}
+			plugin.on('error', err => {
+				err.plugin = `stream "${name}[${ind}]"`;
+				logFile(err.plugin + ' plugin error');
+				selector.emit('error', err);
+			});
 			if (s) {
 				s = s.pipe(plugin);
 			} else {
@@ -189,6 +195,7 @@ module.exports = (condition, p1, p2, userConfig) => { // eslint-disable-line com
 					s = s._readableState.pipes;
 				}
 			}
+			ind++;
 		}
 
 		if (!s && !flush) {
