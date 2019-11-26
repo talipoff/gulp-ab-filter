@@ -4,12 +4,12 @@
 'use strict';
 const path = require('path');
 const Stream = require('stream');
-const gulp = require('gulp');
+const gulp = require('gulp'); // eslint-disable-line import/no-unresolved
 const Vinyl = require('vinyl');
-const abFilter = require('../');
+const abFilter = require('..');
 
-const color1way = '\x1b[31m';
-const color2way = '\x1b[32m';
+const color1way = '\u001B[31m';
+const color2way = '\u001B[32m';
 const nl = '\n';
 
 // This is primitive plugin with delay for testing
@@ -30,8 +30,7 @@ examples.push(() => {
 	console.log('1. Stream filter vinyl objects:');
 	gulp.src('./test/**/*.txt')
 		.pipe(abFilter('!**/block*')) // Exclude block files
-		.pipe(abFilter(file => console.log(abFilter.relPath(file)) || 1, {flush: examples.shift()})) // Use abFilter for logging
-	;
+		.pipe(abFilter(file => console.log(abFilter.relPath(file)) || 1, {flush: examples.shift()})); // Use abFilter for logging
 });
 
 examples.push(() => {
@@ -54,14 +53,15 @@ examples.push(() => {
 				cb();
 			}
 		}))
-		.pipe(abFilter(file => console.log(abFilter.relPath(file)) || 1, {flush: examples.shift()})) // Use abFilter for logging
-	;
+		.pipe(abFilter(file => console.log(abFilter.relPath(file)) || 1, {flush: examples.shift()})); // Use abFilter for logging
 });
 
 examples.push(() => {
 	console.log(nl + '3. Use as a separator stream vinyl objects with a standard branch yes and no:');
 
-	const yes = [ // This set of plugins will be executed sequentially
+	// This set of plugins will be executed sequentially
+	// Re-use of yes is unacceptable!
+	const yes = [
 		replaceP('r', '_'), // 1 gulp plugin
 		(file, cb) => { // Function as 2 plugin
 			// actions with the object, see examples in test.js
@@ -69,13 +69,12 @@ examples.push(() => {
 			cb(null, file); // Mandatory run the callback function
 		},
 		replaceP('*', '#') // 3 gulp plugin
-	]; // Re-use of yes is unacceptable!
+	];
 	const no = replaceP('b', 'B');
 
 	gulp.src('./test/**/*.txt')
 		.pipe(abFilter('**/*t.txt', yes, no))
-		.pipe(abFilter(file => console.log(abFilter.relPath(file) + ':' + String(file.contents)) || 1, {flush: examples.shift()})) // Use abFilter for logging
-	;
+		.pipe(abFilter(file => console.log(abFilter.relPath(file) + ':' + String(file.contents)) || 1, {flush: examples.shift()})); // Use abFilter for logging
 });
 
 examples.push(() => {
@@ -92,8 +91,7 @@ examples.push(() => {
 
 	gulp.src('./test/**/*.txt')
 		.pipe(abFilter('**/*t.txt', replaceP('r', '_'), {end}))
-		.pipe(abFilter(file => console.log(abFilter.relPath(file) + ':' + String(file.contents)) || 1, {flush: examples.shift()})) // Use abFilter for logging
-	;
+		.pipe(abFilter(file => console.log(abFilter.relPath(file) + ':' + String(file.contents)) || 1, {flush: examples.shift()})); // Use abFilter for logging
 });
 
 examples.push(() => {
@@ -115,8 +113,7 @@ examples.push(() => {
 				return relPathParts.length > 2 ? relPathParts[relPathParts.length - 2] : '';
 			}, // Get last segment of path
 			[{n: 'block1', p: pipe1}, {n: 'txt', p: pipe2}]))
-		.pipe(abFilter(file => console.log(abFilter.relPath(file) + ':' + String(file.contents)) || 1, {flush: examples.shift()})) // Use abFilter for logging
-	;
+		.pipe(abFilter(file => console.log(abFilter.relPath(file) + ':' + String(file.contents)) || 1, {flush: examples.shift()})); // Use abFilter for logging
 });
 
 examples.push(() => {
@@ -158,8 +155,7 @@ examples.push(() => {
 				}
 			}
 		))
-		.pipe(abFilter(file => console.log('out:', abFilter.relPath(file)) || 1)) // Use abFilter for logging
-	;
+		.pipe(abFilter(file => console.log('out:', abFilter.relPath(file)) || 1)); // Use abFilter for logging
 });
 
 examples.shift()();
